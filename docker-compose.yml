@@ -1,0 +1,15 @@
+services:
+  pv-dossard:
+    build: .
+    image: pv-dossard
+    container_name: pv-dossard
+    restart: unless-stopped
+    # Run as the host user so writes to the ./data bind mount succeed.
+    # Change to your host uid:gid if not 1000 (check with `id -u; id -g`).
+    user: "1000:1000"
+    env_file:
+      - secrets.env
+    volumes:
+      - ./data:/data      # state.json (dedup / throttle)
+      - ./logs:/logs      # rotating monitor.log (last 2880 lines), survives crashes
+    command: ["python3", "monitor.py", "run"]
