@@ -62,6 +62,30 @@ def env(name, default=None, required=False):
     return val
 
 
+def parse_duration(val, name="duration"):
+    """Parse a duration like '10s', '1m', '90' into seconds (int).
+
+    A bare number is treated as seconds. Suffixes: 's' seconds, 'm' minutes,
+    'h' hours. Raises SystemExit on a malformed or non-positive value.
+    """
+    s = str(val).strip().lower()
+    units = {"s": 1, "m": 60, "h": 3600}
+    unit = 1
+    if s and s[-1] in units:
+        unit = units[s[-1]]
+        s = s[:-1].strip()
+    try:
+        num = float(s)
+    except ValueError:
+        raise SystemExit(
+            f"ERROR: invalid {name} {val!r}; use e.g. '10s', '1m', '2h', or a "
+            f"plain number of seconds")
+    seconds = int(num * unit)
+    if seconds <= 0:
+        raise SystemExit(f"ERROR: {name} must be positive, got {val!r}")
+    return seconds
+
+
 # ---------------------------------------------------------------------------
 # Fetch + detection
 # ---------------------------------------------------------------------------
@@ -302,7 +326,7 @@ def do_check(dry_run=False):
 # Subcommands
 # ---------------------------------------------------------------------------
 def cmd_run(_args):
-    interval = int(env("PV_INTERVAL", default="60"))
+    interval = parse_duration(env("PV_INTERVAL", default="60"), "PV_INTERVAL")
     log(f"Starting monitor loop: {URL} every {interval}s")
     while True:
         try:
@@ -347,7 +371,7 @@ USAGE
 
 COMMANDS
   run                    Long-lived poll loop (the container default). Checks
-                         every PV_INTERVAL seconds forever; auto-restarts.
+                         every PV_INTERVAL forever; auto-restarts.
   check [--dry-run]      Run ONE check and exit. Exit code: 0 = no bib,
                          10 = bib available, 1 = request failed.
                          --dry-run: detect + log only, never send email.
@@ -384,7 +408,8 @@ ENVIRONMENT VARIABLES  (set in secrets.env; commented = use the default)
                          (Gmail usually rewrites this to your account anyway.)
     PV_SMTP_HOST         SMTP server.             default = smtp.gmail.com
     PV_SMTP_PORT         SMTP port (STARTTLS).    default = 587
-    PV_INTERVAL          Seconds between checks.  default = 60
+    PV_INTERVAL          Time between checks. Accepts '10s', '1m', '2h', or a
+                         plain number (= seconds).      default = 60 (1m)
     PV_LOG_MAX_LINES     Rotating log line cap.   default = 2880 (~2 days @ 1/min)
   Testing helpers (normally unset)
     PV_FORCE_AVAILABLE=1 Pretend a bib is available (test the alert path).

@@ -97,7 +97,7 @@ Commented in `secrets.env` = variable unset = the default below is used.
 | `PV_MAIL_FROM` | = `PV_SMTP_USER` | `From:` header. Gmail usually rewrites it to your account regardless. |
 | `PV_SMTP_HOST` | `smtp.gmail.com` | SMTP server. Change only for a non-Gmail provider. |
 | `PV_SMTP_PORT` | `587` | SMTP port (STARTTLS). |
-| `PV_INTERVAL`  | `60` | Seconds between checks (only affects `run`). Lower = faster + more load. |
+| `PV_INTERVAL`  | `60` | Time between checks (only affects `run`). Accepts `10s`, `1m`, `2h`, or a plain number (= seconds). Lower = faster + more load. |
 | `PV_LOG_MAX_LINES` | `2880` | How many log lines the rotating file keeps. |
 
 Testing-only helpers (normally unset): `PV_URL` (override page URL, used to test
